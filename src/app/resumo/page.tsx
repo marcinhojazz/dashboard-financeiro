@@ -5,7 +5,7 @@ import { Card, Text, Button, Flex, Table } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 
 export default function VisaoGeral() {
-  const [dados, setDados] = useState({
+  const [dados] = useState({
     receitas: 10000,
     despesas: 5500,
     pendentes: 2000,

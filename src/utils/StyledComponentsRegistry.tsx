@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ServerStyleSheet, StyleSheetManager } from "styled-components";
+import { StyleSheetManager } from "styled-components";
 
 export default function StyledComponentsRegistry({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);

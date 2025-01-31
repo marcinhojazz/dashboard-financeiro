@@ -15,11 +15,15 @@ const StyledSVG = styled.svg<IconProps>`
 `;
 
 // Função auxiliar para criar ícones
-const createIcon = (path: React.ReactNode) => (props: IconProps) => (
-  <StyledSVG xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {...props}>
-    {path}
-  </StyledSVG>
-);
+const createIcon = (path: React.ReactNode) => {
+  const IconComponent = (props: IconProps) => <StyledSVG {...props}>{path}</StyledSVG>;
+
+  // Definir um nome para facilitar debug
+  IconComponent.displayName = "IconComponent";
+  
+  return IconComponent;
+};
+
 
 // Definição dos ícones
 export const Icons = {
