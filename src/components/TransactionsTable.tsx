@@ -1,114 +1,91 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Table, Text, Button, Flex } from "@radix-ui/themes";
+import { useState } from "react";
+import { Button, Flex } from "@radix-ui/themes";
 import styled from "styled-components";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDate } from "@/utils/formatDate";
+import { Transaction } from "@/types/types";
 
-interface Transaction {
-  date: number;
-  amount: string;
-  transaction_type: "deposit" | "withdraw";
-  currency: string;
-  account: string;
-  industry: string;
-  state: string;
-}
+type TransactionsTableProps = {
+  transactions: Transaction[];
+};
 
-export default function TransactionsTable() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function TransactionsTable({ transactions }: TransactionsTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [hydrated, setHydrated] = useState(false); // 👈 Adiciona um estado para renderizar apenas no cliente
-
-  useEffect(() => {
-    setHydrated(true); // 🚀 Garante que o componente é renderizado APENAS no cliente
-
-    async function fetchTransactions() {
-      try {
-        const response = await fetch("/data/transactions.json");
-        if (!response.ok) {
-          throw new Error(`Erro ao buscar dados: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setTransactions(data);
-      } catch (error) {
-        console.error("Erro ao carregar transações:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTransactions();
-  }, []);
-
-  if (!hydrated) {
-    return null; // Evita erro de hidratação
-  }
-
-  if (loading) {
-    return <LoadingText>Carregando transações...</LoadingText>;
-  }
 
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedTransactions = transactions.slice(startIndex, endIndex);
+  const paginatedTransactions = transactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  if (!transactions.length) {
+    return <LoadingText>Nenhuma transação encontrada.</LoadingText>;
+  }
 
   return (
-    <>
-      <StyledTableContainer>
-        <Table.Root>
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeaderCell>Data</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Conta</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Setor</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Estado</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Tipo</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Valor</Table.ColumnHeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {paginatedTransactions.map((transaction, index) => (
-              <Table.Row key={index}>
-                <Table.Cell>{formatDate(transaction.date)}</Table.Cell>
-                <Table.Cell>{transaction.account}</Table.Cell>
-                <Table.Cell>{transaction.industry}</Table.Cell>
-                <Table.Cell>{transaction.state}</Table.Cell>
-                <Table.Cell>
-                  <Text color={transaction.transaction_type === "deposit" ? "green" : "red"}>
-                    {transaction.transaction_type === "deposit" ? "Depósito" : "Retirada"}
-                  </Text>
-                </Table.Cell>
-                <Table.Cell>
-                  {formatCurrency(parseFloat(transaction.amount), transaction.currency)}
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
-      </StyledTableContainer>
+    <StyledTableContainer>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Conta</th>
+            <th>Indústria</th>
+            <th>Valor</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedTransactions.map((transaction) => (
+            <tr key={transaction.date}>
+              <td>{formatDate(transaction.date)}</td>
+              <td>{transaction.account}</td>
+              <td>{transaction.industry}</td>
+              <td>{formatCurrency(parseFloat(transaction.amount) / 100)}</td>
+              <td>{transaction.transaction_type === "deposit" ? "Receita" : "Despesa"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-      {/* Paginação */}
-      <PaginationContainer>
-        <Button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
-          Anterior
-        </Button>
-        <PageIndicator>Página {currentPage} de {totalPages}</PageIndicator>
-        <Button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
-          Próximo
-        </Button>
-      </PaginationContainer>
-    </>
+      {totalPages > 1 && (
+        <PaginationContainer>
+          <Button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
+            ← Anterior
+          </Button>
+          <PageIndicator>Página {currentPage} de {totalPages}</PageIndicator>
+          <Button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
+            Próxima →
+          </Button>
+        </PaginationContainer>
+      )}
+    </StyledTableContainer>
   );
 }
 
+// 🎨 **Estilos**
 const StyledTableContainer = styled.div`
   width: 100%;
   margin-top: 20px;
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background: #f4f4f4;
+    font-weight: bold;
+  }
 `;
 
 const PaginationContainer = styled(Flex)`

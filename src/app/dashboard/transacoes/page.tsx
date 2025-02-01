@@ -25,18 +25,15 @@ export default function TransactionsPage() {
       .catch((err) => console.error("Erro ao carregar os dados:", err));
   }, []);
 
-  // ✅ Aplicar os filtros antes de passar os dados à tabela
+  // ✅ Aplicar os filtros e busca ANTES de passar os dados à tabela
   const filteredTransactions = transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.date).toISOString().split("T")[0];
-
+  
     return (
       (!filters.startDate || transactionDate >= filters.startDate) &&
       (!filters.endDate || transactionDate <= filters.endDate) &&
       (!filters.account || transaction.account === filters.account) &&
-      (!filters.industry || transaction.industry === filters.industry) &&
-      (!searchQuery ||
-        transaction.account.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        transaction.industry.toLowerCase().includes(searchQuery.toLowerCase()))
+      (!filters.industry || transaction.industry === filters.industry)
     );
   });
 
@@ -44,7 +41,7 @@ export default function TransactionsPage() {
     <div>
       <h1>Transações</h1>
 
-      {/* ✅ Barra de pesquisa funcionando */}
+      {/* ✅ Componentes de Filtros */}
       <SearchBar onSearch={setSearchQuery} />
       <Filters filters={filters} setFilters={setFilters} />
 
